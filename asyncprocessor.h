@@ -19,6 +19,7 @@
 #include <boost/noncopyable.hpp>
 
 typedef boost::function<void ()> JobFunc;
+typedef boost::function<void (const boost::system::error_code& ec)> TimerJobFunc;
 
 namespace bnet
 {
@@ -40,7 +41,7 @@ public:
     void Finitialize();
     
     void AddJob(const JobFunc& func);
-    bool AddTimerJob(uint32_t msec, const JobFunc& func, uint16_t& id);    
+    bool AddTimerJob(uint32_t msec, const TimerJobFunc& func, uint16_t& id);    
     bool DelTimerJob(uint16_t id);
     
     boost::asio::io_service& Service() 
@@ -55,12 +56,12 @@ public:
 private:
     void SetTimer(timer_ptr timer, 
                   const boost::asio::deadline_timer::duration_type& duration, 
-                  const JobFunc& func);
+                  const TimerJobFunc& func);
 
     void HandleTimer(timer_ptr timer, 
                      const boost::asio::deadline_timer::duration_type& duration, 
-                     const boost::system::error_code& error,
-                     const JobFunc& func);
+                     const boost::system::error_code& ec,
+                     const TimerJobFunc& func);
 
 private:
     boost::asio::io_service service_;

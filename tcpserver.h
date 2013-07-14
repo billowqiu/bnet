@@ -36,6 +36,8 @@ public:
      *  @return void.
     */
     void SetThreadNum(std::size_t numthreads);
+    void SetListenPort(uint16_t newport);
+    uint16_t GetListenPort() const;
     void Start();
     void Stop();
     void CloseAcceptor();
@@ -52,7 +54,8 @@ protected:
 private:
     AsyncProcessor* base_processor_;    //主要作为accept
     ProcessorPool processor_pool_;
-    boost::asio::ip::tcp::acceptor acceptor_;    
+    boost::asio::ip::tcp::acceptor acceptor_;
+    uint16_t port_;
     std::set<TCPConnection*> sessions_set_;
 };
 }

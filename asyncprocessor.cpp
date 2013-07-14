@@ -46,7 +46,7 @@ void AsyncProcessor::AddJob( const JobFunc& func )
     service_.post(func);
 }
 
-bool AsyncProcessor::AddTimerJob(uint32_t msec, const JobFunc& func, uint16_t& id)
+bool AsyncProcessor::AddTimerJob(uint32_t msec, const TimerJobFunc& func, uint16_t& id)
 {
     next_timerid_++;
     timer_ptr timer( new boost::asio::deadline_timer(service_, boost::posix_time::milliseconds(msec)));
@@ -74,11 +74,11 @@ bool AsyncProcessor::DelTimerJob( uint16_t id )
 
 void AsyncProcessor::HandleTimer(timer_ptr timer, 
                                  const boost::asio::deadline_timer::duration_type& duration, 
-                                 const boost::system::error_code& error, 
-                                 const JobFunc& func )
+                                 const boost::system::error_code& ec,
+                                 const TimerJobFunc& func )
 {
     //执行该任务
-    func();
+    func(ec);
     //重新调度定时器
     timer->expires_from_now(duration);
     timer->async_wait(boost::bind(&AsyncProcessor::HandleTimer, 
@@ -91,7 +91,7 @@ void AsyncProcessor::HandleTimer(timer_ptr timer,
 
 void AsyncProcessor::SetTimer(timer_ptr timer, 
                               const boost::asio::deadline_timer::duration_type& duration, 
-                              const JobFunc& func )
+                              const TimerJobFunc& func )
 {
 
     timer->async_wait(boost::bind(&AsyncProcessor::HandleTimer, 

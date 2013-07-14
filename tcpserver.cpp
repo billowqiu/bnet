@@ -11,8 +11,9 @@ namespace bnet
 {
 
 TCPServer::TCPServer(AsyncProcessor* processor, uint16_t port):
-base_processor_(processor), 
-acceptor_(base_processor_->Service(), tcp::endpoint(tcp::v4(), port))
+base_processor_(processor),
+acceptor_(base_processor_->Service(), tcp::v4()),
+port_(port)
 {
 }
 
@@ -25,14 +26,39 @@ void TCPServer::SetThreadNum( std::size_t numthreads )
     processor_pool_.SetPoolSize(numthreads);
 }
 
+void TCPServer::SetListenPort( uint16_t newport )
+{
+    port_ = newport;
+}
+
+uint16_t TCPServer::GetListenPort() const
+{
+    return port_;
+}
+
 void TCPServer::Start()
 {
-    processor_pool_.Start();
+    boost::asio::ip::tcp::acceptor::reuse_address reuse_addr(true);
+    boost::system::error_code ec;
+    acceptor_.set_option(reuse_addr, ec);
+    boost::asio::detail::throw_error(ec, "reuse_address");
+    
+    tcp::endpoint bindaddr(tcp::v4(), port_);    
+    acceptor_.bind(bindaddr, ec);
+    boost::asio::detail::throw_error(ec, "bind");
+    
+    acceptor_.listen(boost::asio::socket_base::max_connections, ec);    
+    boost::asio::detail::throw_error(ec, "listen");
+    
     AsyncAccept();
+    //最后再启动线程池
+    processor_pool_.Start();
 }
 
 void TCPServer::Stop()
 {
+    processor_pool_.Stop();
+    
     acceptor_.close();    
     //删除所有的
     for (std::set<TCPConnection*>::iterator it=sessions_set_.begin(); 
@@ -41,9 +67,7 @@ void TCPServer::Stop()
         //最终会调用DestroyConnection
         (*it)->Close();
     }
-    sessions_set_.clear();   
-
-    processor_pool_.Stop();
+    sessions_set_.clear();       
 }
 
 void TCPServer::AsyncAccept()
