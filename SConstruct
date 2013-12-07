@@ -2,7 +2,7 @@ import os
 
 debug = ARGUMENTS.get('debug', 0)
 
-env = Environment()
+env = Environment(ENV=os.environ)
 if int(debug):
     env.Append(CCFLAGS = ['-ggdb3', '-D DEBUG'])
 else:
