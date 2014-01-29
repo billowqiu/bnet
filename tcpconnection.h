@@ -27,7 +27,6 @@ public:
     virtual ~TCPConnection();
 
 protected:
-    //Ö÷¶¯¶Ï¿ª
     virtual void Close();
 
 private:
