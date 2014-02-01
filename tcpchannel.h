@@ -9,70 +9,140 @@
 
 #ifndef BNET_TCPCHANNEL_H_
 #define BNET_TCPCHANNEL_H_
+#include <string>
+#include <iostream>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <boost/noncopyable.hpp>
 #include "bnet/asyncprocessor.h"
 
+#define LOG std::cerr << __FILE__ << ":" <<  __LINE__ << " " <<  __FUNCTION__ << "---"
+
 namespace bnet
 {
+
+/**
+包解析器
+0   数据包还未接收完整，继续接收
+>0  表示数据已经接收完整且该值表示数据包的长度
+<0  表示出错
+ */
+typedef boost::function<int (const char*, std::size_t)> ProtoParserFunc;
+
+int PrefixLenParser(const char* buf, std::size_t size);
 
 class TCPChannel : public boost::noncopyable
 {
 protected:
     TCPChannel(AsyncProcessor* processor);
-    virtual ~TCPChannel ();
-    
+    virtual ~TCPChannel();
+
 public:
-    template<typename _Type, typename ReadHandler>
-    void Read(_Type& buffer, ReadHandler handler)
+    void SetProtoParser(const ProtoParserFunc& parser)
     {
-        AsyncRead(reinterpret_cast<char*>(&buffer), sizeof(_Type), handler);
-    }
-    
-    /** 
-     *  读取size长度的数据到buffer
-     *  @param[in/out] buffer.
-     *  @param[in/out] size.
-     *  @param[in/out] handler.
-     *  @return void.
-    */
-    template<typename ReadHandler>
-    void Read(char* buffer, std::size_t size, ReadHandler handler)
-    {
-        AsyncRead(buffer, size, handler);
-    }
-    /** 
-     *  不保证读取size大小数据，有数据就会回调
-     *  @param[in/out] buffer.
-     *  @param[in/out] size.
-     *  @param[in/out] handler.
-     *  @return void.
-    */
-    template<typename ReadHandler>
-    void ReadSome(char* buffer, std::size_t size, ReadHandler handler)
-    {
-        AsyncReadSome(buffer, size, handler);
+        parser_ = parser;
     }
 
-    template<typename _Type, typename WriteHandler>
-    void Write(const _Type& buffer, WriteHandler handler)
+    virtual int ProcessPacket(const std::string& packet) = 0;
+
+    void InitRead()
     {
-        AsyncWrite(reinterpret_cast<const char*> (&buffer), sizeof (_Type), handler);
+        AsyncReadSome(temp_recvbuf_, 2048, boost::bind(&TCPChannel::HandleInput, this, _1, _2));
     }
-    /** 
+
+    void HandleInput(const boost::system::error_code& error, std::size_t bytes_transferred)
+    {
+        if(!error)
+        {
+            //parse protocol
+            if(bytes_transferred > 0)
+            {
+                LOG << "recv msg size: " << bytes_transferred << std::endl;
+
+                recvbuf_.append(temp_recvbuf_, bytes_transferred);
+                while(true)
+                {
+                    if(!parser_)
+                    {
+                        LOG << "protocol parser not set!!!" << std::endl;
+                        Close();
+
+                        return;
+                    }
+                    int ret = parser_(recvbuf_.data(), recvbuf_.size());
+                    if(ret >0)
+                    {
+                        std::string packet(recvbuf_.data(), ret);
+                        LOG << "process a full packet size: " << packet.size() << std::endl;
+                        //处理掉
+                        ProcessPacket(packet);
+                        //调整大小
+                        recvbuf_ = recvbuf_.substr(ret);
+                        LOG << "recvbuf size: " << recvbuf_.size() << std::endl;
+                    }
+                    else if(ret ==0)
+                    {
+                        AsyncReadSome(temp_recvbuf_, 2048, boost::bind(&TCPChannel::HandleInput, this, _1, _2));
+                        break;
+                    }
+                    else
+                    {
+                        //包解析失败，关掉链接吧
+                        LOG << "packet parse fail" << std::endl;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                //fixme
+                LOG << "Fatal error, " << bytes_transferred << std::endl;
+                Close();
+            }
+        }
+        else
+        {
+            //fixme
+            LOG << error.message() << std::endl;
+            Close();
+        }
+    }
+
+    void HandleOutput(const boost::system::error_code& error, std::size_t bytes_transferred)
+    {
+        if(!error)
+        {
+            //发送buffer修正
+            sendbuf_.substr(bytes_transferred);
+            if(!sendbuf_.empty())
+            {
+                //如果还有数据，继续发送
+                AsyncWriteSome(sendbuf_.data(), sendbuf_.size(),
+                boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
+            }
+        }
+        else
+        {
+            LOG << "send msg error: " << error.message() << std::endl;
+        }
+    }
+
+    /**
      *  异步发送数据
      *  @param[in] buffer.
      *  @param[in] size.
-     *  @param[in] handler，发送完成后的回调函数
      *  @return void.
     */
-    template<typename WriteHandler>
-    void Write(const char* buffer, std::size_t size, WriteHandler handler)
+    void Write(const char* buffer, std::size_t size)
     {
-        AsyncWrite (buffer, size, handler);
+        //附加到sendbuf后面
+        sendbuf_.append(buffer, size);
+        //尽力发送所有的数据
+        AsyncWriteSome(sendbuf_.data(), sendbuf_.size(),
+                       boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
     }
 
-    /** 
+    /**
      *  同步发送数据
      *  @param[in] buffer.
      *  @param[in] size.
@@ -82,31 +152,19 @@ public:
 
     bool Connected() const;
     virtual void Close();
+
+protected:
+    boost::asio::ip::tcp::socket& socket()
+    {
+        return socket_;
+    }
+
+    virtual void OnConnect();
+    virtual void OnClose(const boost::system::error_code& ec);
+
 private:
 
-    /** 
-     *  读取size大小数据，才会调用handler
-     *  @param[in/out] buffer.
-     *  @param[in/out] size.
-     *  @param[in/out] handler.
-     *  @return void.
-    */
-    template<typename ReadHandler>
-    void AsyncRead(char* buffer, std::size_t size, ReadHandler handler)
-    {
-        if (socket_.is_open())
-        {
-            boost::asio::async_read(socket_, boost::asio::buffer(buffer, size),
-                                    boost::asio::transfer_at_least(size),
-                                    handler);
-        }
-        else
-        {
-            //throw Exception
-        }
-    }
-    
-    /** 
+    /**
      *  读取数据，不保证读取size大小的数据
      *  @param[in/out] buffer.
      *  @param[in/out] size.
@@ -123,36 +181,35 @@ private:
         else
         {
             //throw Exception
+            LOG << "socket is not opened!!!" << std::endl;
         }
     }
+
     template<typename WriteHandler>
-    void AsyncWrite (const char* buffer, std::size_t size, WriteHandler handler)
+    void AsyncWriteSome(const char* buffer, std::size_t size, WriteHandler handler)
     {
         if (socket_.is_open())
         {
-            boost::asio::async_write(socket_, boost::asio::buffer(buffer, size), handler);
+            socket_.async_write_some(boost::asio::buffer(buffer, size),handler);
         }
         else
         {
             //throw Exception
+            LOG << "socket is not opened!!!" << std::endl;
         }
     }
 
-protected:
-    boost::asio::ip::tcp::socket& socket()
-    {
-        return socket_; 
-    }
-    
-    virtual void OnConnect();
-    virtual void OnClose(const boost::system::error_code& ec);
-    
 protected:
     AsyncProcessor* ower_processor_;
     boost::asio::ip::tcp::socket socket_;
     bool connected_;
     std::string remote_address_;
     uint16_t remote_port_;
+    std::string recvbuf_;
+    //临时的收包buf
+    char temp_recvbuf_[2048];
+    std::string sendbuf_;
+    ProtoParserFunc parser_;
 };
 
 }

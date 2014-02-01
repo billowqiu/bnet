@@ -10,24 +10,21 @@ bnet::TCPConnection(processor, server)
 
 void EchoSession::OnConnect()
 {
-    std::cout << __FUNCTION__ <<  " current thread:" << boost::this_thread::get_id() << std::endl;
-    //先读取16字节的包长度信息
-    ReadSome(recv_buf_, 1024,
-        boost::bind(&EchoSession::HandleRead, this,
-        boost::asio::placeholders::error,
-        boost::asio::placeholders::bytes_transferred));  
+    LOG << "current thread:" << boost::this_thread::get_id() << std::endl;
+    InitRead();
 }
 
-void EchoSession::HandleRead( const boost::system::error_code& e, std::size_t bytes_transferred )
+int EchoSession::ProcessPacket(const std::string& packet)
 {
-    std::cout << __FUNCTION__ <<  " current thread:" << boost::this_thread::get_id() << std::endl;
-    if (!e)
-    {
-        //echo 
-        socket_.write_some(boost::asio::buffer(recv_buf_, bytes_transferred));
-        ReadSome(recv_buf_, 1024,
-            boost::bind(&EchoSession::HandleRead, this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));  
-    }
+    LOG << "current thread: " << boost::this_thread::get_id()
+        << " pack size: "     << packet.size() << std::endl;
+    socket_.write_some(boost::asio::buffer(packet.data(), packet.size()));
+
+    return 0;
+}
+
+void EchoSession::OnClose(const boost::system::error_code& ec)
+{
+    TCPConnection::OnClose(ec);
+    LOG << "connect close: " << ec.message() << std::endl;
 }

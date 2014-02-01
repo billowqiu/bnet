@@ -17,7 +17,7 @@ namespace bnet
 {
 class TCPServer;
 
-class TCPConnection : protected TCPChannel
+class TCPConnection : public TCPChannel
 {
 private:
     friend class TCPServer;

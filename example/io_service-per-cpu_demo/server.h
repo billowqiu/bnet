@@ -8,7 +8,8 @@ public:
     EchoServer(bnet::AsyncProcessor* processor, uint16_t port);
 
 protected:
-    virtual bnet::TCPConnection* BuildSession(bnet::AsyncProcessor* processor);
+    virtual bnet::TCPConnection* CreateConnection(bnet::AsyncProcessor* processor);
 };
 
 #endif // SERVER_H_
+

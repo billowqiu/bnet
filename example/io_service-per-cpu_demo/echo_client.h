@@ -10,11 +10,8 @@ public:
 
 protected:
     virtual void OnConnect();
-    void HandleRead(const boost::system::error_code& e,
-                    std::size_t bytes_transferred);
-
-private:
-    char recv_buf_[1024];
+    virtual int ProcessPacket(const std::string& packet);
+    virtual void OnClose(const boost::system::error_code& ec);
 };
 
 #endif // ECHO_CLIENT_H_
