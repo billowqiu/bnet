@@ -39,7 +39,7 @@ void TCPClient::HandleConnect(const boost::system::error_code& error,
     {
         OnConnect();
     }
-    //继续连接下一个endpoint
+    //缁х画杩炴帴涓嬩竴涓猠ndpoint
     else if (it_endpoint != tcp::resolver::iterator())
     {
         Close();
@@ -62,7 +62,7 @@ void TCPClient::SyncConnect()
     while (!socket_.is_open() && it != itEnd)
     {
         socket_.close();
-        //connect内部发现没有打开socket,会自动打开
+        //connect鍐呴儴鍙戠幇娌℃湁鎵撳紑socket,浼氳嚜鍔ㄦ墦寮�
         socket_.connect(*it, ec);
 
         if (!ec)

@@ -51,7 +51,7 @@ void TCPServer::Start()
     boost::asio::detail::throw_error(ec, "listen");
     
     AsyncAccept();
-    //×îºóÔÙÆô¶¯Ïß³Ì³Ø
+    //æœ€åå†å¯åŠ¨çº¿ç¨‹æ± 
     processor_pool_.Start();
 }
 
@@ -60,11 +60,11 @@ void TCPServer::Stop()
     processor_pool_.Stop();
     
     acceptor_.close();    
-    //É¾³ıËùÓĞµÄ
+    //åˆ é™¤æ‰€æœ‰çš„
     for (std::set<TCPConnection*>::iterator it=sessions_set_.begin(); 
          it != sessions_set_.end(); ++it)
     {
-        //×îÖÕ»áµ÷ÓÃDestroyConnection
+        //æœ€ç»ˆä¼šè°ƒç”¨DestroyConnection
         (*it)->Close();
     }
     sessions_set_.clear();       
@@ -72,7 +72,7 @@ void TCPServer::Stop()
 
 void TCPServer::AsyncAccept()
 {
-    //Ñ¡È¡Ò»¸öprocessor
+    //é€‰å–ä¸€ä¸ªprocessor
     AsyncProcessor* processor = processor_pool_.GetAsyncProcessor();
     if (NULL == processor)
     {
@@ -95,7 +95,7 @@ void TCPServer::HandleAccept(TCPConnection* pSession,
     {
         sessions_set_.insert(pSession);        
         pSession->OnConnect();
-        //¼ÌĞøÏÂÒ»¸öÁ´½Ó
+        //ç»§ç»­ä¸‹ä¸€ä¸ªé“¾æ¥
         AsyncAccept();
     }
     else
@@ -113,7 +113,7 @@ void TCPServer::CloseAcceptor()
 void TCPServer::DestroyConnection(TCPConnection* pSocketSession)
 {
     sessions_set_.erase(pSocketSession);
-    //É¾³ıÁË
+    //åˆ é™¤äº†
     delete pSocketSession;
 }
 

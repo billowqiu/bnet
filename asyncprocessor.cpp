@@ -77,9 +77,9 @@ void AsyncProcessor::HandleTimer(timer_ptr timer,
                                  const boost::system::error_code& ec,
                                  const TimerJobFunc& func )
 {
-    //Ö´ÐÐ¸ÃÈÎÎñ
+    //æ‰§è¡Œè¯¥ä»»åŠ¡
     func(ec);
-    //ÖØÐÂµ÷¶È¶¨Ê±Æ÷
+    //é‡æ–°è°ƒåº¦å®šæ—¶å™¨
     timer->expires_from_now(duration);
     timer->async_wait(boost::bind(&AsyncProcessor::HandleTimer, 
                                   this, 

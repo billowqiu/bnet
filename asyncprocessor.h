@@ -31,9 +31,9 @@ public:
     AsyncProcessor();
     ~AsyncProcessor();
     /** 
-     *  ³õÊ¼»¯Òì²½´¦Àí¿ò¼ÜÏß³ÌÊı
-     *  @param[in] io_thread_num£¬
-     *             0±íÊ¾Ö±½ÓÔÚÖ÷Ïß³ÌÖĞ¿ªÆôeventloop£¬
+     *  åˆå§‹åŒ–å¼‚æ­¥å¤„ç†æ¡†æ¶çº¿ç¨‹æ•°
+     *  @param[in] io_thread_numï¼Œ
+     *             0è¡¨ç¤ºç›´æ¥åœ¨ä¸»çº¿ç¨‹ä¸­å¼€å¯eventloopï¼Œ
      *                              
      *  @return void.
     */

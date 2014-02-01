@@ -1,0 +1,17 @@
+package bnet;
+
+enum MessageType
+{
+	REQUEST		= 1;
+	RESPONSE 	= 2;
+}
+
+message Message
+{
+	require int32        version = 1;
+	require MessageType  packet_type = 2;
+	require fixed32      id = 3;
+	require int32  		cmd = 4;
+	//应用根据cmd来解析buffer
+	require string		buffer = 5;
+}

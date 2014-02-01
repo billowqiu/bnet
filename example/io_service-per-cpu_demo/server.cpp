@@ -9,7 +9,6 @@ static int EchoParser(const char* buf, std::size_t size)
 EchoServer::EchoServer( bnet::AsyncProcessor* processor, uint16_t port ):
 bnet::TCPServer(processor, port)
 {
-
 }
 
 bnet::TCPConnection* EchoServer::CreateConnection(bnet::AsyncProcessor* processor)

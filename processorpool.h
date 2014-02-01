@@ -26,7 +26,6 @@ public:
     void SetPoolSize(std::size_t size);
     void Start();
     void Stop();
-    //获取一个processor
     AsyncProcessor* GetAsyncProcessor();
     
 private:

@@ -29,10 +29,10 @@ public:
 
 public:
     /** 
-     *  ÉèÖÃ´¦ÀíI/OµÄÏß³ÌÊı£¬±ØĞëÔÚStartÖ®Ç°µ÷ÓÃ
+     *  è®¾ç½®å¤„ç†I/Oçš„çº¿ç¨‹æ•°ï¼Œå¿…é¡»åœ¨Startä¹‹å‰è°ƒç”¨
      *  @param[in] numthreads.
-     *  0,ËùÓĞµÄI/O¶¼ÔÚµ±Ç°Ïß³ÌÖĞ
-     *  >0,³öacceptĞÂÁ¬½ÓÍâ£¬ËùÓĞI/OÍ¨¹ıround-robinËã·¨Ñ¡È¡Ò»¸öprocessor´¦Àí
+     *  0,æ‰€æœ‰çš„I/Oéƒ½åœ¨å½“å‰çº¿ç¨‹ä¸­
+     *  >0,å‡ºacceptæ–°è¿æ¥å¤–ï¼Œæ‰€æœ‰I/Oé€šè¿‡round-robinç®—æ³•é€‰å–ä¸€ä¸ªprocessorå¤„ç†
      *  @return void.
     */
     void SetThreadNum(std::size_t numthreads);
@@ -52,7 +52,7 @@ protected:
     virtual TCPConnection* CreateConnection(AsyncProcessor* processor) = 0;
 
 private:
-    AsyncProcessor* base_processor_;    //Ö÷Òª×÷Îªaccept
+    AsyncProcessor* base_processor_;    //ä¸»è¦ä½œä¸ºaccept
     ProcessorPool processor_pool_;
     boost::asio::ip::tcp::acceptor acceptor_;
     uint16_t port_;

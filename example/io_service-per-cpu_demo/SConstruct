@@ -1,0 +1,18 @@
+import os
+
+debug = ARGUMENTS.get('debug', 0)
+
+env = Environment(ENV=os.environ)
+if int(debug):
+    env.Append(CCFLAGS = ['-ggdb3', '-D DEBUG'])
+else:
+    env.Append(CCFLAGS = ['-O3', '-DNDEBUG'])
+
+env.Append(CCFLAGS = '-I../../../')
+env.Append(LIBPATH= '../../')
+env.Append(LIBS = ['bnet'])
+env.Append(LIBS = ['boost_system','boost_thread', 'boost_filesystem', 'boost_program_options'])
+env.Append(LIBS = ['pthread', 'rt'])
+
+env.Program("echo_sever", ['echo_client.cpp', 'server.cpp', 'main.cpp'])
+
