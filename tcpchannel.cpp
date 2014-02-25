@@ -127,9 +127,15 @@ void TCPChannel::Write(const char* buffer, std::size_t size)
 {
     //附加到sendbuf后面
     sendbuf_.append(buffer, size);
-    //尽力发送所有的数据
-    AsyncWriteSome(sendbuf_.data(), sendbuf_.size(),
-                   boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
+
+    //判断是否有之前没有写完的数据(防止数据乱序,这里是共用一个通讯链路)
+    bool write_in_progress = !sendbuf_.empty();
+    if(!write_in_progress)
+    {
+        //尽力发送所有的数据
+        AsyncWriteSome(sendbuf_.data(), sendbuf_.size(),
+                       boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
+    }
 }
 
 void TCPChannel::AsyncReadSome(char* buffer, std::size_t size,  const AsyncIoHandler& handler)

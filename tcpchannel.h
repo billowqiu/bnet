@@ -11,6 +11,7 @@
 #define BNET_TCPCHANNEL_H_
 #include <string>
 #include <iostream>
+#include <deque>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/noncopyable.hpp>
@@ -96,6 +97,9 @@ protected:
     std::string recvbuf_;
     //临时的收包buf
     char temp_recvbuf_[2048];
+    //发送消息队列
+    typedef std::deque<std::string> send_message_queue;
+    send_message_queue send_messages_;
     std::string sendbuf_;
     ProtoParserFunc parser_;
 };
