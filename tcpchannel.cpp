@@ -108,6 +108,27 @@ void TCPChannel::HandleOutput(const boost::system::error_code& error, std::size_
 {
     if(!error)
     {
+        //删除队头已经发送完的数据
+        send_messages_.pop_front();
+        //如果还有数据 ，那么继续发送
+        if(!send_messages_.empty())
+        {
+            //这里采用的发送完所有的数据才回调
+            boost::asio::async_write(socket_,
+                                     boost::asio::buffer(send_messages_.front().data(),
+                                                         send_messages_.front().length(),
+                                     boost::bind(&TCPChannel::HandleOutput, this, _1, _2)));
+
+        }
+    }
+    else
+    {
+        LOG << "send msg error: " << error.message()  << " close it" << std::endl;
+        Close();
+    }
+    /*
+    if(!error)
+    {
         //发送buffer修正
         sendbuf_.substr(bytes_transferred);
         if(!sendbuf_.empty())
@@ -121,10 +142,24 @@ void TCPChannel::HandleOutput(const boost::system::error_code& error, std::size_
     {
         LOG << "send msg error: " << error.message() << std::endl;
     }
+    */
 }
 
 void TCPChannel::Write(const char* buffer, std::size_t size)
 {
+    //要先判断发送队列是否为空
+    bool write_in_progress = !send_messages_.empty();
+    send_messages_.push_back(std::string(buffer, size));
+    //队列之前没有待发送数据，那么可以再次发送了
+    if(!write_in_progress)
+    {
+        //这里采用的发送完所有的数据才回调
+        boost::asio::async_write(socket_,
+                                 boost::asio::buffer(send_messages_.front().data(),
+                                                     send_messages_.front().length(),
+                                 boost::bind(&TCPChannel::HandleOutput, this, _1, _2)));
+    }
+    /*
     //附加到sendbuf后面
     sendbuf_.append(buffer, size);
 
@@ -136,6 +171,7 @@ void TCPChannel::Write(const char* buffer, std::size_t size)
         AsyncWriteSome(sendbuf_.data(), sendbuf_.size(),
                        boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
     }
+    */
 }
 
 void TCPChannel::AsyncReadSome(char* buffer, std::size_t size,  const AsyncIoHandler& handler)
