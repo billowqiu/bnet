@@ -116,8 +116,8 @@ void TCPChannel::HandleOutput(const boost::system::error_code& error, std::size_
             //这里采用的发送完所有的数据才回调
             boost::asio::async_write(socket_,
                                      boost::asio::buffer(send_messages_.front().data(),
-                                                         send_messages_.front().length(),
-                                     boost::bind(&TCPChannel::HandleOutput, this, _1, _2)));
+                                                         send_messages_.front().length()),
+                                     boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
 
         }
     }
@@ -156,8 +156,8 @@ void TCPChannel::Write(const char* buffer, std::size_t size)
         //这里采用的发送完所有的数据才回调
         boost::asio::async_write(socket_,
                                  boost::asio::buffer(send_messages_.front().data(),
-                                                     send_messages_.front().length(),
-                                 boost::bind(&TCPChannel::HandleOutput, this, _1, _2)));
+                                                     send_messages_.front().length()),
+                                 boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
     }
     /*
     //附加到sendbuf后面
