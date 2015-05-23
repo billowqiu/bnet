@@ -15,7 +15,7 @@
 #include <boost/asio.hpp>
 #include <boost/noncopyable.hpp>
 #include "bnet/processorpool.h"
-namespace bnet 
+namespace bnet
 {
 
 class AsyncProcessor;
@@ -42,10 +42,10 @@ public:
     void Stop();
     void CloseAcceptor();
     void DestroyConnection(TCPConnection* pSocketSession);
-    
+
 private:
     void AsyncAccept();
-    void HandleAccept(TCPConnection* pSession, 
+    void HandleAccept(TCPConnection* pSession,
                       const boost::system::error_code& error);
 
 protected:
