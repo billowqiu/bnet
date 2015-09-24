@@ -208,7 +208,7 @@ void TCPChannel::Close()
         boost::system::error_code error;
         socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, error);
         socket_.close();
-
+        //callback
         OnClose(error);
     }
 }
@@ -244,3 +244,4 @@ void TCPChannel::OnClose(const boost::system::error_code& ec)
 }
 
 }
+

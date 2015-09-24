@@ -23,11 +23,11 @@ namespace bnet
 {
 
 /**
-包解析器
-0   数据包还未接收完整，继续接收
->0  表示数据已经接收完整且该值表示数据包的长度
-<0  表示出错
- */
+    包解析器
+    0   数据包还未接收完整，继续接收
+    >0  表示数据已经接收完整且该值表示数据包的长度
+    <0  表示出错
+*/
 typedef boost::function<int (const char*, std::size_t)> ProtoParserFunc;
 typedef boost::function<void (const boost::system::error_code, std::size_t)> AsyncIoHandler;
 
@@ -47,14 +47,11 @@ public:
 
     virtual int ProcessPacket(const std::string& packet) = 0;
 
+    // @brief:  read from client
     void InitRead()
     {
         AsyncReadSome(temp_recvbuf_, 2048, boost::bind(&TCPChannel::HandleInput, this, _1, _2));
     }
-
-    void HandleInput(const boost::system::error_code& error, std::size_t bytes_transferred);
-
-    void HandleOutput(const boost::system::error_code& error, std::size_t bytes_transferred);
 
     /**
      *  异步发送数据
@@ -85,6 +82,8 @@ protected:
     virtual void OnClose(const boost::system::error_code& ec);
 
 private:
+    void HandleInput(const boost::system::error_code& error, std::size_t bytes_transferred);
+    void HandleOutput(const boost::system::error_code& error, std::size_t bytes_transferred);
     void AsyncReadSome(char* buffer, std::size_t size,  const AsyncIoHandler& handler);
     void AsyncWriteSome(const char* buffer, std::size_t size, const AsyncIoHandler& handler);
 
@@ -106,3 +105,4 @@ protected:
 
 }
 #endif // BNET_TCPCHANNEL_H_
+

@@ -7,7 +7,7 @@
 #include "bnet/tcpconnection.h"
 using namespace boost::asio::ip;
 
-namespace bnet 
+namespace bnet
 {
 
 TCPServer::TCPServer(AsyncProcessor* processor, uint16_t port):
@@ -42,14 +42,14 @@ void TCPServer::Start()
     boost::system::error_code ec;
     acceptor_.set_option(reuse_addr, ec);
     boost::asio::detail::throw_error(ec, "reuse_address");
-    
-    tcp::endpoint bindaddr(tcp::v4(), port_);    
+
+    tcp::endpoint bindaddr(tcp::v4(), port_);
     acceptor_.bind(bindaddr, ec);
     boost::asio::detail::throw_error(ec, "bind");
-    
-    acceptor_.listen(boost::asio::socket_base::max_connections, ec);    
+
+    acceptor_.listen(boost::asio::socket_base::max_connections, ec);
     boost::asio::detail::throw_error(ec, "listen");
-    
+
     AsyncAccept();
     //最后再启动线程池
     processor_pool_.Start();
@@ -58,16 +58,16 @@ void TCPServer::Start()
 void TCPServer::Stop()
 {
     processor_pool_.Stop();
-    
-    acceptor_.close();    
+
+    acceptor_.close();
     //删除所有的
-    for (std::set<TCPConnection*>::iterator it=sessions_set_.begin(); 
+    for (std::set<TCPConnection*>::iterator it=sessions_set_.begin();
          it != sessions_set_.end(); ++it)
     {
         //最终会调用DestroyConnection
         (*it)->Close();
     }
-    sessions_set_.clear();       
+    sessions_set_.clear();
 }
 
 void TCPServer::AsyncAccept()
@@ -78,22 +78,22 @@ void TCPServer::AsyncAccept()
     {
         processor = base_processor_;
     }
-    
+    //pre create connection for async accept
     TCPConnection* pSession = CreateConnection(processor);
-    
-    acceptor_.async_accept(pSession->socket(), 
-                           boost::bind(&TCPServer::HandleAccept, 
-                           this, 
-                           pSession, 
+    //async accept
+    acceptor_.async_accept(pSession->socket(),
+                           boost::bind(&TCPServer::HandleAccept,
+                           this,
+                           pSession,
                            boost::asio::placeholders::error));
 }
 
-void TCPServer::HandleAccept(TCPConnection* pSession, 
+void TCPServer::HandleAccept(TCPConnection* pSession,
                              const boost::system::error_code& error)
 {
     if(!error)
     {
-        sessions_set_.insert(pSession);        
+        sessions_set_.insert(pSession);
         pSession->OnConnect();
         //继续下一个链接
         AsyncAccept();

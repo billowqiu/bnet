@@ -6,14 +6,13 @@ namespace bnet
 {
 
 TCPConnection::TCPConnection(AsyncProcessor* processor, TCPServer* server):
-TCPChannel(processor), 
+TCPChannel(processor),
 socket_server_ (server)
 {
 }
 
 TCPConnection::~TCPConnection()
 {
-
 }
 
 void TCPConnection::Close()
@@ -23,5 +22,4 @@ void TCPConnection::Close()
 }
 
 }
-
 
