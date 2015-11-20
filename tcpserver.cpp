@@ -2,7 +2,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/checked_delete.hpp>
-
+#include <glog/logging.h>
 #include "bnet/asyncprocessor.h"
 #include "bnet/tcpconnection.h"
 using namespace boost::asio::ip;
@@ -94,6 +94,7 @@ void TCPServer::HandleAccept(TCPConnection* pSession,
     if(!error)
     {
         sessions_set_.insert(pSession);
+        LOG(ERROR) << "current conn size: " << sessions_set_.size();
         pSession->OnConnect();
         //继续下一个链接
         AsyncAccept();

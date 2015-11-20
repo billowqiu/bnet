@@ -8,11 +8,12 @@ if int(debug):
 else:
     env.Append(CCFLAGS = ['-O3', '-DNDEBUG'])
 
-env.Append(CCFLAGS = '-I../../../')
-env.Append(LIBPATH= '../../')
+env.Append(CCFLAGS = '-DBOOST_LOG_DYN_LINK -I../../../ -I/home/billowqiu/3rdlib/include')
+env.Append(LIBPATH= ['../../', '/home/billowqiu/3rdlib/lib'])
+env.Append(LINKFLAGS = "-static")
 env.Append(LIBS = ['bnet'])
-env.Append(LIBS = ['boost_system','boost_thread', 'boost_filesystem', 'boost_program_options'])
+env.Append(LIBS = ['glog', 'gflags', 'boost_system', 'boost_filesystem', 'boost_thread', 'boost_program_options'])
 env.Append(LIBS = ['pthread', 'rt'])
 
-env.Program("echo_sever", ['echo_client.cpp', 'server.cpp', 'main.cpp'])
+env.Program("echo_svr", ['echo_client.cpp', 'server.cpp', 'main.cpp'])
 

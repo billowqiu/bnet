@@ -9,4 +9,5 @@ else:
     env.Append(CCFLAGS = ['-O3', '-DNDEBUG'])
 
 env.Append(CCFLAGS = '-I../')
+env.Append(CPPPATH = '/home/billowqiu/3rdlib/include/')
 env.Library("bnet", Glob('*.cpp'))

@@ -1,4 +1,5 @@
 #include "bnet/tcpchannel.h"
+#include <glog/logging.h>
 using namespace boost::asio::ip;
 
 namespace bnet
@@ -51,14 +52,15 @@ void TCPChannel::HandleInput(const boost::system::error_code& error, std::size_t
         //parse protocol
         if(bytes_transferred > 0)
         {
-            LOG << "recv msg size: " << bytes_transferred << std::endl;
+            LOG(INFO) << "recv msg size: " << bytes_transferred;
 
             recvbuf_.append(temp_recvbuf_, bytes_transferred);
+            //循环处理收到的包，有可能一次recv收了多个业务包
             while(true)
             {
                 if(!parser_)
                 {
-                    LOG << "protocol parser not set!!!" << std::endl;
+                    LOG(ERROR) << "protocol parser not set!!!";
                     Close();
 
                     return;
@@ -67,24 +69,24 @@ void TCPChannel::HandleInput(const boost::system::error_code& error, std::size_t
                 if(ret >0)
                 {
                     std::string packet(recvbuf_.data(), ret);
-                    LOG << "process a full packet size: " << packet.size() << std::endl;
+                    LOG(INFO) << "process a full packet size: " << packet.size();
                     //处理掉
                     ProcessPacket(packet);
                     //调整大小
                     recvbuf_ = recvbuf_.substr(ret);
-                    LOG << "recvbuf size: " << recvbuf_.size() << std::endl;
+                    LOG(INFO) << "after process packet recvbuf size: " << recvbuf_.size();
                 }
                 else if(ret ==0)
                 {
-                    LOG << "the pack is partial, size: " << recvbuf_.size() << std::endl;
-
+                    LOG(INFO) << "the pack is partial, size: " << recvbuf_.size();
+                    //一次最多读取2KB大小的包
                     AsyncReadSome(temp_recvbuf_, 2048, boost::bind(&TCPChannel::HandleInput, this, _1, _2));
                     break;
                 }
                 else
                 {
                     //包解析失败，关掉链接吧
-                    LOG << "packet parse fail" << std::endl;
+                    LOG(ERROR) << "packet parse fail";
                     break;
                 }
             }
@@ -92,14 +94,14 @@ void TCPChannel::HandleInput(const boost::system::error_code& error, std::size_t
         else
         {
             //fixme
-            LOG << "Fatal error, " << bytes_transferred << std::endl;
+            LOG(ERROR) << "Fatal error, bytes_transferred is invalid: " << bytes_transferred;
             Close();
         }
     }
     else
     {
         //fixme
-        LOG << error.message() << std::endl;
+        LOG(ERROR) << "Recv msg error: " << error.message();
         Close();
     }
 }
@@ -123,26 +125,9 @@ void TCPChannel::HandleOutput(const boost::system::error_code& error, std::size_
     }
     else
     {
-        LOG << "send msg error: " << error.message()  << " close it" << std::endl;
+        LOG(ERROR) << "send msg error: " << error.message()  << " close it";
         Close();
     }
-    /*
-    if(!error)
-    {
-        //发送buffer修正
-        sendbuf_.substr(bytes_transferred);
-        if(!sendbuf_.empty())
-        {
-            //如果还有数据，继续发送
-            AsyncWriteSome(sendbuf_.data(), sendbuf_.size(),
-            boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
-        }
-    }
-    else
-    {
-        LOG << "send msg error: " << error.message() << std::endl;
-    }
-    */
 }
 
 void TCPChannel::Write(const char* buffer, std::size_t size)
@@ -159,19 +144,6 @@ void TCPChannel::Write(const char* buffer, std::size_t size)
                                                      send_messages_.front().length()),
                                  boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
     }
-    /*
-    //附加到sendbuf后面
-    sendbuf_.append(buffer, size);
-
-    //判断是否有之前没有写完的数据(防止数据乱序,这里是共用一个通讯链路)
-    bool write_in_progress = !sendbuf_.empty();
-    if(!write_in_progress)
-    {
-        //尽力发送所有的数据
-        AsyncWriteSome(sendbuf_.data(), sendbuf_.size(),
-                       boost::bind(&TCPChannel::HandleOutput, this, _1, _2));
-    }
-    */
 }
 
 void TCPChannel::AsyncReadSome(char* buffer, std::size_t size,  const AsyncIoHandler& handler)
@@ -183,7 +155,7 @@ void TCPChannel::AsyncReadSome(char* buffer, std::size_t size,  const AsyncIoHan
     else
     {
         //throw Exception
-        LOG << "socket is not opened!!!" << std::endl;
+        LOG(ERROR) << "socket is not opened!!!";
     }
 }
 
@@ -196,7 +168,7 @@ void TCPChannel::AsyncWriteSome(const char* buffer, std::size_t size, const Asyn
     else
     {
         //throw Exception
-        LOG << "socket is not opened!!!" << std::endl;
+        LOG(ERROR) << "socket is not opened!!!";
     }
 }
 

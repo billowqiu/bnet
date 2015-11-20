@@ -22,12 +22,12 @@ class ProcessorPool : public boost::noncopyable
 public:
     explicit ProcessorPool();
     ~ProcessorPool();
-    
+
     void SetPoolSize(std::size_t size);
     void Start();
     void Stop();
     AsyncProcessor* GetAsyncProcessor();
-    
+
 private:
     std::vector<AsyncProcessor*> processors_;
     std::size_t next_processor_;
@@ -37,5 +37,4 @@ private:
 }
 
 #endif // BNET_PROCESSORMGR_H
-
 

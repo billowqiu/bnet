@@ -39,27 +39,35 @@ public:
     */
     void Initialize();
     void Finitialize();
-    
+    // @brief:   执行一次性的任务
+    //
+    // @param:  func, 待执行的函数对象，见上面的typedef
     void AddJob(const JobFunc& func);
-    bool AddTimerJob(uint32_t msec, const TimerJobFunc& func, uint16_t& id);    
+
+    // @brief:  执行定时任务
+    //
+    // @param:  msec, 任务多久执行一次
+    // @param:  func, 同上
+    // @param:  id, 定时器ID，后续删除需要
+    //
+    // @return: true表示添加成功
+    bool AddTimerJob(uint32_t msec, const TimerJobFunc& func, uint16_t& id);
     bool DelTimerJob(uint16_t id);
-    
-    boost::asio::io_service& Service() 
+    boost::asio::io_service& Service()
     {
-        return service_; 
+        return service_;
     }
-    
     void Run();
     void RunOne();
     void Stop();
-    
+
 private:
-    void SetTimer(timer_ptr timer, 
-                  const boost::asio::deadline_timer::duration_type& duration, 
+    void SetTimer(timer_ptr timer,
+                  const boost::asio::deadline_timer::duration_type& duration,
                   const TimerJobFunc& func);
 
-    void HandleTimer(timer_ptr timer, 
-                     const boost::asio::deadline_timer::duration_type& duration, 
+    void HandleTimer(timer_ptr timer,
+                     const boost::asio::deadline_timer::duration_type& duration,
                      const boost::system::error_code& ec,
                      const TimerJobFunc& func);
 
@@ -67,7 +75,6 @@ private:
     boost::asio::io_service service_;
     boost::asio::io_service::work emptywork_;
     uint16_t next_timerid_;
-    
     typedef boost::unordered_map<uint16_t, timer_ptr> TimersMap;
     TimersMap timers_;
 };
@@ -75,3 +82,4 @@ private:
 }
 
 #endif // BNET_ASYNCPROCESSOR_H_
+
