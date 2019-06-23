@@ -7,7 +7,7 @@
 //  See www.boost.org/libs/asio for documentation.
 //
 
-#ifndef BNET_PROCESSORPOLL_H
+#ifndef BNET_PROCESSORPOOL_H
 #define BNET_PROCESSORPOOL_H
 
 #include <vector>
@@ -36,5 +36,5 @@ private:
 
 }
 
-#endif // BNET_PROCESSORMGR_H
+#endif // BNET_PROCESSORPOOL_H
 
